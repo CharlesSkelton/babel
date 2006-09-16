@@ -1,0 +1,27 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "K4RtdServer", "K4RtdServer.csproj", "{2FCFC4C8-CD0C-42B7-B546-3F361413FA72}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "K4RtdServerSetup", "..\K4RtdServerSetup\K4RtdServerSetup.vdproj", "{9E645FD2-9636-46FC-AD73-DE339EF13AAA}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{2FCFC4C8-CD0C-42B7-B546-3F361413FA72}.Debug.ActiveCfg = Debug|.NET
+		{2FCFC4C8-CD0C-42B7-B546-3F361413FA72}.Debug.Build.0 = Debug|.NET
+		{2FCFC4C8-CD0C-42B7-B546-3F361413FA72}.Release.ActiveCfg = Release|.NET
+		{2FCFC4C8-CD0C-42B7-B546-3F361413FA72}.Release.Build.0 = Release|.NET
+		{9E645FD2-9636-46FC-AD73-DE339EF13AAA}.Debug.ActiveCfg = Debug
+		{9E645FD2-9636-46FC-AD73-DE339EF13AAA}.Release.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

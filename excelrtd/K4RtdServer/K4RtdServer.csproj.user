@@ -1,0 +1,54 @@
+<VisualStudioProject>
+    <CSHARP LastOpenVersion = "7.10.3077" >
+        <Build>
+            <Settings ReferencePath = "" >
+                <Config
+                    Name = "Debug"
+                    EnableASPDebugging = "false"
+                    EnableASPXDebugging = "false"
+                    EnableUnmanagedDebugging = "false"
+                    EnableSQLServerDebugging = "false"
+                    RemoteDebugEnabled = "false"
+                    RemoteDebugMachine = ""
+                    StartAction = "Program"
+                    StartArguments = "K4RtdServer.xls"
+                    StartPage = ""
+                    StartProgram = "C:\Program Files\Microsoft Office\OFFICE11\EXCEL.EXE"
+                    StartURL = ""
+                    StartWorkingDirectory = "C:\K4RtdServer\bin\Debug"
+                    StartWithIE = "true"
+                >
+                    <InteropRegistration
+                        RegisteredComClassic = "true"
+                        RegisteredOutput = "K4RtdServer.dll"
+                        RegisteredTypeLib = "K4RtdServer.tlb"
+                    />
+                </Config>
+                <Config
+                    Name = "Release"
+                    EnableASPDebugging = "false"
+                    EnableASPXDebugging = "false"
+                    EnableUnmanagedDebugging = "false"
+                    EnableSQLServerDebugging = "false"
+                    RemoteDebugEnabled = "false"
+                    RemoteDebugMachine = ""
+                    StartAction = "Project"
+                    StartArguments = ""
+                    StartPage = ""
+                    StartProgram = ""
+                    StartURL = ""
+                    StartWorkingDirectory = ""
+                    StartWithIE = "false"
+                />
+            </Settings>
+        </Build>
+        <OtherProjectSettings
+            CopyProjectDestinationFolder = ""
+            CopyProjectUncPath = ""
+            CopyProjectOption = "0"
+            ProjectView = "ProjectFiles"
+            ProjectTrust = "0"
+        />
+    </CSHARP>
+</VisualStudioProject>
+
