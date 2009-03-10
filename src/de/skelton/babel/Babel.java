@@ -1,3 +1,7 @@
+/* Babel for kdb+ by Charles Skelton
+   is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Germany License
+   http://creativecommons.org/licenses/by-nc-sa/3.0
+*/
 package de.skelton.babel;
 
 import de.skelton.util.SmartArray;
@@ -23,7 +27,7 @@ import kx.c;
 
 public class Babel
 {
-    private static final String version="Babel for kdb+ Version 1.0 beta\nCopyright (c) 2008 Skelton Consulting GmbH";
+    private static final String version="Babel for kdb+ Version 1.0\n";
     private static Map typeMap=new HashMap();
 
     private static void init() throws ClassNotFoundException
