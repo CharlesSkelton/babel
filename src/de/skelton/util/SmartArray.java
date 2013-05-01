@@ -9,93 +9,31 @@ import java.lang.reflect.Array;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.Arrays;
 
-public class SmartArray
-{
-    int writePosition=0;
-    private Object array;
-    private int growthSize;
-
-    public SmartArray(Class primitiveClass)
-    {
-        this(1024,primitiveClass);
+public class SmartArray{
+  int n=0;
+  private Object a;
+  public SmartArray(Class primitiveClass){this(8192,primitiveClass);}
+  public SmartArray(int initialSize,Class primitiveClass){a=Array.newInstance(primitiveClass,initialSize);}
+  private void checkCapacity(){
+    if(n>=Array.getLength(a)){
+      Object b=Array.newInstance(a.getClass().getComponentType(),2*Array.getLength(a));
+      System.arraycopy(a,0,b,0,Array.getLength(a));
+      a=b;b=null;
     }
-
-    public SmartArray(int initialSize,Class primitiveClass)
-    {
-        this(initialSize,(int)(initialSize/4),primitiveClass);
-    }
-
-    public SmartArray(int initialSize,int growthSize,Class primitiveClass)
-    {
-        this.growthSize=growthSize;
-        array=Array.newInstance(primitiveClass,initialSize);
-    }
-
-    private void checkCapacity()
-    {
-        if(writePosition>=Array.getLength(array))
-        {
-            Object tmpArray=Array.newInstance(array.getClass().getComponentType(),Array.getLength(array)+growthSize);
-            System.arraycopy(array,0,tmpArray,0,Array.getLength(array));
-            array=tmpArray;
-        }
-    }
-
-    public void append(Time t)
-    {
-        Array.set(array,writePosition++,t);
-    }
-
-    public void append(Timestamp t)
-    {
-        Array.set(array,writePosition++,t);
-    }
-
-    public void append(Date d)
-    {
-        Array.set(array,writePosition++,d);
-    }
-
-    public void append(short s)
-    {
-        Array.setShort(array,writePosition++,s);
-    }
-
-    public void append(long l)
-    {
-        Array.setLong(array,writePosition++,l);
-    }
-
-    public void append(boolean b)
-    {
-        Array.setBoolean(array,writePosition++,b);
-    }
-
-    public void append(float f)
-    {
-        Array.setFloat(array,writePosition++,f);
-    }
-
-    public void append(double d)
-    {
-        Array.setDouble(array,writePosition++,d);
-    }
-
-    public void append(int i)
-    {
-        Array.setInt(array,writePosition++,i);
-    }
-
-    public void append(String s)
-    {
-        Array.set(array,writePosition++,s);
-    }
-
-    public Object toArray()
-    {
-        Object trimmedArray=Array.newInstance(array.getClass().getComponentType(),writePosition);
-        System.arraycopy(array,0,trimmedArray,0,writePosition);
-        return trimmedArray;
-    }
+  }
+  public void add(byte[]b){checkCapacity();Array.set(a,n++,b);}
+  public void add(char[]c){checkCapacity();Array.set(a,n++,c);}
+  public void add(Time t){checkCapacity();Array.set(a,n++,t);}
+  public void add(Timestamp t){checkCapacity();Array.set(a,n++,t);}
+  public void add(Date d){checkCapacity();Array.set(a,n++,d);}
+  public void add(long l){checkCapacity();Array.setLong(a,n++,l);}
+  public void add(boolean b){checkCapacity();Array.setBoolean(a,n++,b);}
+  public void add(float f){checkCapacity();Array.setFloat(a,n++,f);}
+  public void add(double d){checkCapacity();Array.setDouble(a,n++,d);}
+  public void add(int i){checkCapacity();Array.setInt(a,n++,i);}
+//    public void append(short s){checkCapacity();Array.setShort(a,n++,s);}
+//    public void append(String s){checkCapacity();Array.set(a,n++,s);}
+  public Object compact(){Object b=Array.newInstance(a.getClass().getComponentType(),n);System.arraycopy(a,0,b,0,n);a=b;return a;}
 }
