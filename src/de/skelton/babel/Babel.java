@@ -28,10 +28,6 @@ public class Babel{
   private static final String about="Babel for kdb+ v1.1\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
-    Class.forName("org.relique.jdbc.csv.CsvDriver");
-    Class.forName("org.hsqldb.jdbcDriver");
-    Class.forName("com.mysql.jdbc.Driver");
-    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
     typeMap.put(new Integer(java.sql.Types.BIGINT),long.class);
     typeMap.put(new Integer(java.sql.Types.BIT),boolean.class);
@@ -160,6 +156,19 @@ public class Babel{
         System.exit(1);
       }
     }
+    
+    if(args.length>1){
+      for(int i=1; i<args.length; i++) {
+        try{
+            Class.forName(args[i]);
+        }
+        catch(Exception e){
+            System.err.println("Error: could not load jdbc driver. Exiting.");
+            System.exit(1);
+        }
+      }
+    }
+    
     final int _port=port;
     try{
       init();
