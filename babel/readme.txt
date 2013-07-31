@@ -1,11 +1,17 @@
 Babel for kdb+
 allows jdbc compatible databases to be queried directly from kdb+.
 
-Start it with
+Start it with (e.g. if connecting to mysql)
 
-java -jar babel.jar 6868
+java -jar babel.jar 6868 com.mysql.jdbc.Driver
 
-skelton8:dist cskelton$ java -jar babel.jar 6868
+which is of the pattern
+
+java -jar babel.jar listeningport jdbcdriver1 jdbcdriver2 ... jdbcdriverN
+
+Actual output is similar to
+
+$java -jar babel.jar 6868 com.mysql.jdbc.Driver
 Babel for kdb+ Version 1.0 beta
 2008.01.08 11:42:13.839 Listening on port 6868 for connections...
 2008.01.08 11:42:22.818 New connection from /127.0.0.1:62929
@@ -20,24 +26,27 @@ Babel for kdb+ Version 1.0 beta
 
 From kdb+
 
-skelton8:~ cskelton$ q
+$ q
 KDB+ 2.4 2007.12.04 Copyright (C) 1993-2007 Kx Systems
-m64/ 2()core 3072MB cskelton skelton8. 255.255.255.255 EXPIRE 2008.11.01
-charlie skelton #42003
+m64/ 2()core
 
-h:hopen 6868      / connect to babel server
-h ("update";"jdbc:hsqldb:hsql://localhost";"drop TABLE tradeXX");
-h ("update";"jdbc:hsqldb:hsql://localhost";"CREATE TABLE tradeXX(time
-timestamp default 'now',sym VARCHAR, price double, size integer)");
-h ("update";"jdbc:hsqldb:hsql://localhost";"INSERT INTO
-tradeXX(sym,price,size) VALUES('VOD.L', 130.25, 100)");
-q)h ("query";"jdbc:hsqldb:hsql://localhost"; "SELECT * FROM trade")
-TIME                    SYM   PRICE  SIZE
------------------------------------------
-2008.08.01T11:42:22.961 VOD.L 130.25 100
-q)
+q)h:hopen 6868      / connect to babel server
+q)h ("query";"jdbc:mysql://ensembldb.ensembl.org:3306/ensembl_go_48?user=anonymous";"show tables")
+TABLE_NAME             
+-----------------------
+"assoc_rel"            
+"association"          
+"association_qualifier"
+"db"                   
+"dbxref"               
+"evidence"             
+"evidence_dbxref"      
+"gene_product"         
+"gene_product_count"   
+"gene_product_property"
+...
 
-This was using hsql. Your ms sql will be different :-)
+This demo uses http://www.ensembl.org/info/data/mysql.html
 
 As you can see there are 2 functions available to you - update and query.
 The params are
