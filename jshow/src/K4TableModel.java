@@ -6,8 +6,10 @@
  *            see http://creativecommons.org/licenses/by-sa/2.0/legalcode
  *            or the included license.txt file for full license details
  */
+import java.io.UnsupportedEncodingException;
 import javax.swing.table.AbstractTableModel;
 import java.lang.reflect.Array;
+import kx.c;
 
 public class K4TableModel extends AbstractTableModel implements KTableModel
 {
@@ -16,7 +18,7 @@ public class K4TableModel extends AbstractTableModel implements KTableModel
     private String  [] headers=  new String [0];
     private int        rowCount= 0;
 
-    public void setData( Object obj)
+    public void setData( Object obj) throws UnsupportedEncodingException
     {
         if( obj instanceof c.Dict)
         {
@@ -86,7 +88,7 @@ public class K4TableModel extends AbstractTableModel implements KTableModel
     {
     }
 
-    public K4TableModel( Object obj)
+    public K4TableModel( Object obj) throws UnsupportedEncodingException
     {
         setData( obj);
     }

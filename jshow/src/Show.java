@@ -7,6 +7,10 @@
  *            or the included license.txt file for full license details
  */
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -20,6 +24,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.List;
+import kx.c;
 
 
 public class Show extends JPanel
@@ -37,8 +42,11 @@ public class Show extends JPanel
     public Show(final JFrame frame, final Object obj)
     {
         super(new GridLayout(1, 0));
-
-        model = new K4TableModel(obj);
+        try {
+            model = new K4TableModel(obj);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Show.class.getName()).log(Level.SEVERE, null, ex);
+        }
         SortableTableModel sorter = null;
 
         if (model.getRowCount() < 50000)
@@ -281,7 +289,7 @@ public class Show extends JPanel
     private static Map frameMap= Collections.synchronizedMap( new HashMap());
     private static int windowId= 0;
 
-    public static void closeWindows(c c)
+    public static void closeWindows(kx.c c)
     {
         List list= new LinkedList();
         Set keys= frameMap.keySet();
@@ -325,7 +333,7 @@ public class Show extends JPanel
         frame.dispose();
     }
 
-    private static JFrame createAndShowGUI(c c, String title, Object obj)
+    private static JFrame createAndShowGUI(kx.c c, String title, Object obj)
     {
         boolean frameReused= false;
 
@@ -424,7 +432,7 @@ public class Show extends JPanel
 
                                     try
                                     {
-                                        c = new c(s);
+                                        c = new c(s,null);
 
                                         while (true)
                                         {
@@ -448,7 +456,7 @@ public class Show extends JPanel
 
                                                     final Object fobj= obj;
                                                     final String ftitle= title;
-                                                    final c fc= c;
+                                                    final kx.c fc= c;
 
                                                     if( K4TableModel.isTable(obj))
                                                     {
@@ -480,9 +488,11 @@ public class Show extends JPanel
                                     {
                                         closeWindows(c);
 
-                                        if( c != null)
-                                        {
-                                            c.close();
+                                        if( c != null){
+                                            try{
+                                                c.close();
+                                            } catch (IOException ex) {
+                                            }
                                             c= null;
                                         }
                                     }
