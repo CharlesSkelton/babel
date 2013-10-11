@@ -52,7 +52,6 @@ public class Babel{
     String connectionDetails=new String(_connectionDetails);
     String query=new String(_query);
     String[] columnNames=new String[0];
-    SmartArray[] data=new SmartArray[0];
     Connection conn=null;
     ArrayList v=new ArrayList();
     try{
@@ -66,52 +65,56 @@ public class Babel{
         // stmt.setFetchSize(Integer.MIN_VALUE);
         ResultSet results=null;
         try{
-          boolean available=stmt.execute();
-          while(available){
-            results=stmt.getResultSet();
-            ResultSetMetaData rmd=results.getMetaData();
-            int nCols=rmd.getColumnCount();
-            columnNames=new String[nCols];
-            data=new SmartArray[nCols];
-            int[]dataTypes=new int[nCols];
-            for(int col=0;col<nCols;col++){
-              columnNames[col]=rmd.getColumnName(col+1);
-              dataTypes[col]=rmd.getColumnType(col+1);
-              Class clazz=(Class)typeMap.get(new Integer(dataTypes[col]));
-              if(clazz==null)
-                throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);
-              data[col]=new SmartArray(clazz);
-            }
-            rmd=null;
-            while(results.next()){
+          boolean isResultSet=stmt.execute();
+          while(true){
+            if(isResultSet){
+              results=stmt.getResultSet();
+              ResultSetMetaData rmd=results.getMetaData();
+              int nCols=rmd.getColumnCount();
+              columnNames=new String[nCols];
+              SmartArray[]data=new SmartArray[nCols];
+              int[]dataTypes=new int[nCols];
               for(int col=0;col<nCols;col++){
-                switch(dataTypes[col]){
-                  case(java.sql.Types.BIT):
-                  case(java.sql.Types.BOOLEAN):{boolean b=results.getBoolean(col+1);if(results.wasNull())b=false;data[col].add(b);}break;
-                  case(java.sql.Types.FLOAT):
-                  case(java.sql.Types.DOUBLE):{double d=results.getDouble(col+1);if(results.wasNull())d=Double.NaN;data[col].add(d);}break;
-                  case(java.sql.Types.REAL):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
-                  case(java.sql.Types.TINYINT):
-                  case(java.sql.Types.SMALLINT):
-                  case(java.sql.Types.INTEGER):{int i=results.getInt(col+1);if(results.wasNull())i=Integer.MIN_VALUE;data[col].add(i);}break;
-                  case(java.sql.Types.BIGINT):{long l=results.getLong(col+1);if(results.wasNull())l=Long.MIN_VALUE;data[col].add(l);}break;
-                  case(java.sql.Types.LONGVARBINARY):{byte[] b=results.getBytes(col+1);if(results.wasNull())b=new byte[0];data[col].add(b);}break;
-                  case(java.sql.Types.CHAR):
-                  case(java.sql.Types.VARCHAR):
-                  case(java.sql.Types.LONGVARCHAR):{String s=results.getString(col+1);if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
-                  case(java.sql.Types.DATE):{Date d=results.getDate(col+1);if(results.wasNull())d=(Date)c.NULL('d');data[col].add(d);}break;
-                  case(java.sql.Types.TIME):{Time t=results.getTime(col+1);if(results.wasNull())t=(Time)c.NULL('t');data[col].add(t);}break;
-                  case(java.sql.Types.TIMESTAMP):{Timestamp t=results.getTimestamp(col+1);if(results.wasNull())t=(Timestamp)c.NULL('p');data[col].add(t);}break;
-                  default:{throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);}
+                columnNames[col]=rmd.getColumnName(col+1);
+                dataTypes[col]=rmd.getColumnType(col+1);
+                Class clazz=(Class)typeMap.get(new Integer(dataTypes[col]));
+                if(clazz==null)
+                  throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);
+                data[col]=new SmartArray(clazz);
+              }
+              rmd=null; 
+              while(results.next()){
+                for(int col=0;col<nCols;col++){
+                  switch(dataTypes[col]){
+                    case(java.sql.Types.BIT):
+                    case(java.sql.Types.BOOLEAN):{boolean b=results.getBoolean(col+1);if(results.wasNull())b=false;data[col].add(b);}break;
+                    case(java.sql.Types.FLOAT):
+                    case(java.sql.Types.DOUBLE):{double d=results.getDouble(col+1);if(results.wasNull())d=Double.NaN;data[col].add(d);}break;
+                    case(java.sql.Types.REAL):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
+                    case(java.sql.Types.TINYINT):
+                    case(java.sql.Types.SMALLINT):
+                    case(java.sql.Types.INTEGER):{int i=results.getInt(col+1);if(results.wasNull())i=Integer.MIN_VALUE;data[col].add(i);}break;
+                    case(java.sql.Types.BIGINT):{long l=results.getLong(col+1);if(results.wasNull())l=Long.MIN_VALUE;data[col].add(l);}break;
+                    case(java.sql.Types.LONGVARBINARY):{byte[] b=results.getBytes(col+1);if(results.wasNull())b=new byte[0];data[col].add(b);}break;
+                    case(java.sql.Types.CHAR):
+                    case(java.sql.Types.VARCHAR):
+                    case(java.sql.Types.LONGVARCHAR):{String s=results.getString(col+1);if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
+                    case(java.sql.Types.DATE):{Date d=results.getDate(col+1);if(results.wasNull())d=(Date)c.NULL('d');data[col].add(d);}break;
+                    case(java.sql.Types.TIME):{Time t=results.getTime(col+1);if(results.wasNull())t=(Time)c.NULL('t');data[col].add(t);}break;
+                    case(java.sql.Types.TIMESTAMP):{Timestamp t=results.getTimestamp(col+1);if(results.wasNull())t=(Timestamp)c.NULL('p');data[col].add(t);}break;
+                    default:{throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);}
+                  }
                 }
               }
+              Object[]o=new Object[data.length];
+              for(int i=0;i<o.length;i++)
+                o[i]=data[i].compact();
+              data=null;
+              v.add(new c.Flip(new c.Dict(columnNames,o)));
             }
-            Object[]o=new Object[data.length];
-            for(int i=0;i<o.length;i++)
-              o[i]=data[i].compact();
-            data=null;
-            v.add(new c.Flip(new c.Dict(columnNames,o)));
-            available=stmt.getMoreResults();
+            else if(-1==stmt.getUpdateCount())
+              break;
+            isResultSet=stmt.getMoreResults();
           }
         }
         finally{
