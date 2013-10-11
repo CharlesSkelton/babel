@@ -19,13 +19,14 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import de.skelton.util.Logger;
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 import kx.c;
 
 public class Babel{
-  private static final String about="Babel for kdb+ v1.1\n";
+  private static final String about="Babel for kdb+ v1.2\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
@@ -47,60 +48,70 @@ public class Babel{
     typeMap.put(new Integer(java.sql.Types.VARCHAR),char[].class);    
   }
   
-  public static c.Flip query(char[] _connectionDetails,char[] _query) throws ClassNotFoundException,SQLException{
+  public static Object query(char[] _connectionDetails,char[] _query) throws ClassNotFoundException,SQLException{
     String connectionDetails=new String(_connectionDetails);
     String query=new String(_query);
     String[] columnNames=new String[0];
     SmartArray[] data=new SmartArray[0];
     Connection conn=null;
+    ArrayList v=new ArrayList();
     try{
       conn=DriverManager.getConnection(connectionDetails);
-      Statement stmt=null;
+      PreparedStatement stmt=null;
       try{
-        stmt=conn.createStatement();
-      // oracle streams results by default anyway?
-      // next 2 lines are mysql specific, to stream resultset on demand
-      // stmt=conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY, java.sql.ResultSet.CONCUR_READ_ONLY);
-      // stmt.setFetchSize(Integer.MIN_VALUE);
+        stmt=conn.prepareStatement(query);
+        // oracle streams results by default anyway?
+        // next 2 lines are mysql specific, to stream resultset on demand
+        // stmt=conn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY, java.sql.ResultSet.CONCUR_READ_ONLY);
+        // stmt.setFetchSize(Integer.MIN_VALUE);
         ResultSet results=null;
         try{
-          results=stmt.executeQuery(query);
-          ResultSetMetaData rmd=results.getMetaData();
-          int nCols=rmd.getColumnCount();
-          columnNames=new String[nCols];
-          data=new SmartArray[nCols];
-          int[]dataTypes=new int[nCols];
-          for(int col=0;col<nCols;col++){
-            columnNames[col]=rmd.getColumnName(col+1);
-            dataTypes[col]=rmd.getColumnType(col+1);
-            Class clazz=(Class)typeMap.get(new Integer(dataTypes[col]));
-            if(clazz==null)
-              throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);
-            data[col]=new SmartArray(clazz);
-          }
-          rmd=null;
-          while(results.next()){
+          boolean available=stmt.execute();
+          while(available){
+            results=stmt.getResultSet();
+            ResultSetMetaData rmd=results.getMetaData();
+            int nCols=rmd.getColumnCount();
+            columnNames=new String[nCols];
+            data=new SmartArray[nCols];
+            int[]dataTypes=new int[nCols];
             for(int col=0;col<nCols;col++){
-              switch(dataTypes[col]){
-                case(java.sql.Types.BIT):
-                case(java.sql.Types.BOOLEAN):{boolean b=results.getBoolean(col+1);if(results.wasNull())b=false;data[col].add(b);}break;
-                case(java.sql.Types.FLOAT):
-                case(java.sql.Types.DOUBLE):{double d=results.getDouble(col+1);if(results.wasNull())d=Double.NaN;data[col].add(d);}break;
-                case(java.sql.Types.REAL):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
-                case(java.sql.Types.TINYINT):
-                case(java.sql.Types.SMALLINT):
-                case(java.sql.Types.INTEGER):{int i=results.getInt(col+1);if(results.wasNull())i=Integer.MIN_VALUE;data[col].add(i);}break;
-                case(java.sql.Types.BIGINT):{long l=results.getLong(col+1);if(results.wasNull())l=Long.MIN_VALUE;data[col].add(l);}break;
-                case(java.sql.Types.LONGVARBINARY):{byte[] b=results.getBytes(col+1);if(results.wasNull())b=new byte[0];data[col].add(b);}break;
-                case(java.sql.Types.CHAR):
-                case(java.sql.Types.VARCHAR):
-                case(java.sql.Types.LONGVARCHAR):{String s=results.getString(col+1);if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
-                case(java.sql.Types.DATE):{Date d=results.getDate(col+1);if(results.wasNull())d=(Date)c.NULL('d');data[col].add(d);}break;
-                case(java.sql.Types.TIME):{Time t=results.getTime(col+1);if(results.wasNull())t=(Time)c.NULL('t');data[col].add(t);}break;
-                case(java.sql.Types.TIMESTAMP):{Timestamp t=results.getTimestamp(col+1);if(results.wasNull())t=(Timestamp)c.NULL('p');data[col].add(t);}break;
-                default:{throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);}
+              columnNames[col]=rmd.getColumnName(col+1);
+              dataTypes[col]=rmd.getColumnType(col+1);
+              Class clazz=(Class)typeMap.get(new Integer(dataTypes[col]));
+              if(clazz==null)
+                throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);
+              data[col]=new SmartArray(clazz);
+            }
+            rmd=null;
+            while(results.next()){
+              for(int col=0;col<nCols;col++){
+                switch(dataTypes[col]){
+                  case(java.sql.Types.BIT):
+                  case(java.sql.Types.BOOLEAN):{boolean b=results.getBoolean(col+1);if(results.wasNull())b=false;data[col].add(b);}break;
+                  case(java.sql.Types.FLOAT):
+                  case(java.sql.Types.DOUBLE):{double d=results.getDouble(col+1);if(results.wasNull())d=Double.NaN;data[col].add(d);}break;
+                  case(java.sql.Types.REAL):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
+                  case(java.sql.Types.TINYINT):
+                  case(java.sql.Types.SMALLINT):
+                  case(java.sql.Types.INTEGER):{int i=results.getInt(col+1);if(results.wasNull())i=Integer.MIN_VALUE;data[col].add(i);}break;
+                  case(java.sql.Types.BIGINT):{long l=results.getLong(col+1);if(results.wasNull())l=Long.MIN_VALUE;data[col].add(l);}break;
+                  case(java.sql.Types.LONGVARBINARY):{byte[] b=results.getBytes(col+1);if(results.wasNull())b=new byte[0];data[col].add(b);}break;
+                  case(java.sql.Types.CHAR):
+                  case(java.sql.Types.VARCHAR):
+                  case(java.sql.Types.LONGVARCHAR):{String s=results.getString(col+1);if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
+                  case(java.sql.Types.DATE):{Date d=results.getDate(col+1);if(results.wasNull())d=(Date)c.NULL('d');data[col].add(d);}break;
+                  case(java.sql.Types.TIME):{Time t=results.getTime(col+1);if(results.wasNull())t=(Time)c.NULL('t');data[col].add(t);}break;
+                  case(java.sql.Types.TIMESTAMP):{Timestamp t=results.getTimestamp(col+1);if(results.wasNull())t=(Timestamp)c.NULL('p');data[col].add(t);}break;
+                  default:{throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);}
+                }
               }
             }
+            Object[]o=new Object[data.length];
+            for(int i=0;i<o.length;i++)
+              o[i]=data[i].compact();
+            data=null;
+            v.add(new c.Flip(new c.Dict(columnNames,o)));
+            available=stmt.getMoreResults();
           }
         }
         finally{
@@ -114,11 +125,7 @@ public class Babel{
     finally{
       if(conn!=null){conn.close();conn=null;}
     }
-    Object[] o=new Object[data.length];
-    for(int i=0;i<o.length;i++)
-      o[i]=data[i].compact();
-    data=null;
-    return new c.Flip(new c.Dict(columnNames,o));
+    return v.size()==1?v.get(0):v.toArray();
   }
 
   public static int update(char[] _connectionDetails,char[] _expression) throws SQLException,ClassNotFoundException{
@@ -204,7 +211,7 @@ public class Babel{
                             cls= Class.forName(className);
                             methodName= methodName.substring(splitAt+1,methodName.length());
                           }
-                          Vector v= new Vector();
+                          ArrayList v= new ArrayList();
                           for( int i=1;i<((Object[])obj).length; i++)
                             if(((Object[])obj)[i] != null)
                               v.add(((Object[])obj)[i]);
