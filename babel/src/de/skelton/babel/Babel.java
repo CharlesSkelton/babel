@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import de.skelton.util.Logger;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import java.util.Map;
 import kx.c;
 
 public class Babel{
-  private static final String about="Babel for kdb+ v1.3 2013.10.18\n";
+  private static final String about="Babel for kdb+ v1.31 2013.10.18\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
@@ -35,6 +36,7 @@ public class Babel{
     typeMap.put(new Integer(java.sql.Types.BOOLEAN),boolean.class);
     typeMap.put(new Integer(java.sql.Types.CHAR),char[].class);
     typeMap.put(new Integer(java.sql.Types.DATE),java.sql.Date.class);
+    typeMap.put(new Integer(java.sql.Types.DECIMAL),char[].class);    
     typeMap.put(new Integer(java.sql.Types.NUMERIC),char[].class);    
     typeMap.put(new Integer(java.sql.Types.DOUBLE),double.class);
     typeMap.put(new Integer(java.sql.Types.FLOAT),float.class);
@@ -78,22 +80,16 @@ public class Babel{
               for(int col=0;col<nCols;col++){
                 columnNames[col]=rmd.getColumnName(col+1);
                 dataTypes[col]=rmd.getColumnType(col+1);
-                if(dataTypes[col]==java.sql.Types.NUMERIC){
-                  // NUMBER(precision,scale)
-                  // oracle.jdbc.J2EE13Compliant connection property to true eliminates getScale=-127
-                  // but still returns 0/0 result.
-                  // 0/0 just means undefined
+                if(dataTypes[col]==java.sql.Types.NUMERIC||dataTypes[col]==java.sql.Types.DECIMAL){
+                  // NUMBER(precision,scale);(0,0)-unspecified;(38,0)-default
+                  // oracle.jdbc.J2EE13Compliant=true eliminates getScale=-127
                   int scale=rmd.getScale(col+1);
                   int precision=rmd.getPrecision(col+1);
-                  if(scale==0||scale==-127){
-                    if(precision==0)
-                      dataTypes[col]=java.sql.Types.DOUBLE;
-                    else if(precision<=9)
-                      dataTypes[col]=java.sql.Types.INTEGER; // 32bit int can hold any NUMBER(10,0).
+                  if(precision>0&&(scale==0||scale==-127)){
+                    if(precision<=9)
+                      dataTypes[col]=java.sql.Types.INTEGER;
                     else if(precision<=18)
-                      dataTypes[col]=java.sql.Types.BIGINT; // NUMBER(38, 0) is conventionally used in Oracle for integers of unspecified precision
-                    else if(precision==0)
-                      dataTypes[col]=java.sql.Types.BIGINT; // Oracle sometimes represents ints as precision=0,scale=-127. 
+                      dataTypes[col]=java.sql.Types.BIGINT;
                   }
                   else if(precision<=7)
                     dataTypes[col]=java.sql.Types.FLOAT;
@@ -119,7 +115,8 @@ public class Babel{
                     case(java.sql.Types.INTEGER):{int i=results.getInt(col+1);if(results.wasNull())i=Integer.MIN_VALUE;data[col].add(i);}break;
                     case(java.sql.Types.BIGINT):{long l=results.getLong(col+1);if(results.wasNull())l=Long.MIN_VALUE;data[col].add(l);}break;
                     case(java.sql.Types.LONGVARBINARY):{byte[] b=results.getBytes(col+1);if(results.wasNull())b=new byte[0];data[col].add(b);}break;
-                    case(java.sql.Types.NUMERIC):{String s=results.getBigDecimal(col+1).toPlainString();if(results.wasNull())s="";data[col].add(s.toCharArray());}break;                                          
+                    case(java.sql.Types.DECIMAL):
+                    case(java.sql.Types.NUMERIC):
                     case(java.sql.Types.CHAR):
                     case(java.sql.Types.VARCHAR):
                     case(java.sql.Types.LONGVARCHAR):{String s=results.getString(col+1);if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
