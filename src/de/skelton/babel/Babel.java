@@ -26,7 +26,7 @@ import java.util.Map;
 import kx.c;
 
 public class Babel{
-  private static final String about="Babel for kdb+ v1.2 2013.10.11\n";
+  private static final String about="Babel for kdb+ v1.3 2013.10.18\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
@@ -37,7 +37,7 @@ public class Babel{
     typeMap.put(new Integer(java.sql.Types.DATE),java.sql.Date.class);
     typeMap.put(new Integer(java.sql.Types.NUMERIC),char[].class);    
     typeMap.put(new Integer(java.sql.Types.DOUBLE),double.class);
-    typeMap.put(new Integer(java.sql.Types.FLOAT),double.class);
+    typeMap.put(new Integer(java.sql.Types.FLOAT),float.class);
     typeMap.put(new Integer(java.sql.Types.INTEGER),int.class);
     typeMap.put(new Integer(java.sql.Types.LONGVARBINARY),byte[].class);
     typeMap.put(new Integer(java.sql.Types.LONGVARCHAR),char[].class);
@@ -78,6 +78,28 @@ public class Babel{
               for(int col=0;col<nCols;col++){
                 columnNames[col]=rmd.getColumnName(col+1);
                 dataTypes[col]=rmd.getColumnType(col+1);
+                if(dataTypes[col]==java.sql.Types.NUMERIC){
+                  // NUMBER(precision,scale)
+                  // oracle.jdbc.J2EE13Compliant connection property to true eliminates getScale=-127
+                  // but still returns 0/0 result.
+                  // 0/0 just means undefined
+                  int scale=rmd.getScale(col+1);
+                  int precision=rmd.getPrecision(col+1);
+                  if(scale==0||scale==-127){
+                    if(precision==0)
+                      dataTypes[col]=java.sql.Types.DOUBLE;
+                    else if(precision<=9)
+                      dataTypes[col]=java.sql.Types.INTEGER; // 32bit int can hold any NUMBER(10,0).
+                    else if(precision<=18)
+                      dataTypes[col]=java.sql.Types.BIGINT; // NUMBER(38, 0) is conventionally used in Oracle for integers of unspecified precision
+                    else if(precision==0)
+                      dataTypes[col]=java.sql.Types.BIGINT; // Oracle sometimes represents ints as precision=0,scale=-127. 
+                  }
+                  else if(precision<=7)
+                    dataTypes[col]=java.sql.Types.FLOAT;
+                  else if(precision<=15)
+                    dataTypes[col]=java.sql.Types.DOUBLE;
+                }
                 Class clazz=(Class)typeMap.get(new Integer(dataTypes[col]));
                 if(clazz==null)
                   throw new RuntimeException("Unsupported sql data type: "+dataTypes[col]+" in column "+columnNames[col]);
@@ -89,15 +111,15 @@ public class Babel{
                   switch(dataTypes[col]){
                     case(java.sql.Types.BIT):
                     case(java.sql.Types.BOOLEAN):{boolean b=results.getBoolean(col+1);if(results.wasNull())b=false;data[col].add(b);}break;
-                    case(java.sql.Types.FLOAT):
+                    case(java.sql.Types.FLOAT):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
                     case(java.sql.Types.DOUBLE):{double d=results.getDouble(col+1);if(results.wasNull())d=Double.NaN;data[col].add(d);}break;
                     case(java.sql.Types.REAL):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
                     case(java.sql.Types.TINYINT):
-                    case(java.sql.Types.SMALLINT):
+                    case(java.sql.Types.SMALLINT):{short h=results.getShort(col+1);if(results.wasNull())h=Short.MIN_VALUE;data[col].add(h);}break;
                     case(java.sql.Types.INTEGER):{int i=results.getInt(col+1);if(results.wasNull())i=Integer.MIN_VALUE;data[col].add(i);}break;
                     case(java.sql.Types.BIGINT):{long l=results.getLong(col+1);if(results.wasNull())l=Long.MIN_VALUE;data[col].add(l);}break;
                     case(java.sql.Types.LONGVARBINARY):{byte[] b=results.getBytes(col+1);if(results.wasNull())b=new byte[0];data[col].add(b);}break;
-                    case(java.sql.Types.NUMERIC):{String s=results.getBigDecimal(col+1).toPlainString();if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
+                    case(java.sql.Types.NUMERIC):{String s=results.getBigDecimal(col+1).toPlainString();if(results.wasNull())s="";data[col].add(s.toCharArray());}break;                                          
                     case(java.sql.Types.CHAR):
                     case(java.sql.Types.VARCHAR):
                     case(java.sql.Types.LONGVARCHAR):{String s=results.getString(col+1);if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
