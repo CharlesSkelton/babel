@@ -13,7 +13,7 @@ import java.util.*;
 public abstract class Logger {
    private static boolean on = true;
 
-   private static SimpleDateFormat dateFormat= new SimpleDateFormat("yyyy.dd.MM HH:mm:ss.SSS");
+   private static SimpleDateFormat dateFormat= new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
 
    public static boolean isOn() {
       return on;
