@@ -19,7 +19,6 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import de.skelton.util.Logger;
-import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +26,7 @@ import java.util.Map;
 import kx.c;
 
 public class Babel{
-  private static final String about="Babel for kdb+ v1.31 2013.10.18\n";
+  private static final String about="Babel for kdb+ v1.32 2013.10.18\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
@@ -39,7 +38,7 @@ public class Babel{
     typeMap.put(new Integer(java.sql.Types.DECIMAL),char[].class);    
     typeMap.put(new Integer(java.sql.Types.NUMERIC),char[].class);    
     typeMap.put(new Integer(java.sql.Types.DOUBLE),double.class);
-    typeMap.put(new Integer(java.sql.Types.FLOAT),float.class);
+    typeMap.put(new Integer(java.sql.Types.FLOAT),double.class);
     typeMap.put(new Integer(java.sql.Types.INTEGER),int.class);
     typeMap.put(new Integer(java.sql.Types.LONGVARBINARY),byte[].class);
     typeMap.put(new Integer(java.sql.Types.LONGVARCHAR),char[].class);
@@ -107,7 +106,7 @@ public class Babel{
                   switch(dataTypes[col]){
                     case(java.sql.Types.BIT):
                     case(java.sql.Types.BOOLEAN):{boolean b=results.getBoolean(col+1);if(results.wasNull())b=false;data[col].add(b);}break;
-                    case(java.sql.Types.FLOAT):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
+                    case(java.sql.Types.FLOAT):
                     case(java.sql.Types.DOUBLE):{double d=results.getDouble(col+1);if(results.wasNull())d=Double.NaN;data[col].add(d);}break;
                     case(java.sql.Types.REAL):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
                     case(java.sql.Types.TINYINT):
