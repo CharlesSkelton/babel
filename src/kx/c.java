@@ -105,7 +105,19 @@ public void ks(String s)throws IOException{w(0,cs(s));}public void ks(Object x)t
 public void ks(String s,Object x)throws IOException{Object[]a={cs(s),x};w(0,a);}
 public void ks(String s,Object x,Object y)throws IOException{Object[]a={cs(s),x,y};w(0,a);}
 public void ks(String s,Object x,Object y,Object z)throws IOException{Object[]a={cs(s),x,y,z};w(0,a);}
-public Object k()throws KException,IOException,UnsupportedEncodingException{synchronized(i){i.readFully(b=new byte[8]);a=b[0]==1;if(b[1]==1)sync++;boolean c=b[2]==1;j=4;i.readFully(b=new byte[ri()-8]);if(c)u();else j=0;if(b[0]==-128){j=1;throw new KException(rs());}return r();}}
+public class Msg{
+  public Msg(int t,Object x){type=t;data=x;}
+  public int type;
+  public Object data;
+};
+public Msg k()throws KException,IOException,UnsupportedEncodingException{
+  synchronized(i){
+    int t;
+    i.readFully(b=new byte[8]);
+    a=b[0]==1;t=b[1];
+    if(t==1)sync++;
+    boolean c=b[2]==1;
+    j=4;i.readFully(b=new byte[ri()-8]);if(c)u();else j=0;if(b[0]==-128){j=1;throw new KException(rs());}return new Msg(t,r());}}
 public synchronized Object k(Object x)throws KException,IOException{w(1,x);return k();}
 public Object k(String s)throws KException,IOException{return k(cs(s));}
 public Object k(String s,Object x)throws KException,IOException{Object[]a={cs(s),x};return k(a);}
