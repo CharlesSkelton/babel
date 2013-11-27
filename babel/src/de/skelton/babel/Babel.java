@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import de.skelton.util.Logger;
+import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +50,6 @@ public class Babel{
     typeMap.put(new Integer(java.sql.Types.TINYINT),int.class);    
     typeMap.put(new Integer(java.sql.Types.VARCHAR),char[].class);    
   }
-  
   public static Object query(char[] _connectionDetails,char[] _query) throws ClassNotFoundException,SQLException{
     String connectionDetails=new String(_connectionDetails);
     String query=new String(_query);
@@ -150,7 +150,6 @@ public class Babel{
     }
     return v.size()==1?v.get(0):v.toArray();
   }
-
   public static int update(char[] _connectionDetails,char[] _expression) throws SQLException,ClassNotFoundException{
     String connectionDetails=new String(_connectionDetails);
     String expression=new String(_expression);
@@ -173,7 +172,18 @@ public class Babel{
     }
     return 1;
   }
-
+  static void sendResponse(c c,c.Dict cb,int msgType,Object r) throws IOException{
+    switch(msgType){
+      case 0:{if(cb!=null)c.ks((String)((Object[])cb.y)[0],(String)((Object[])cb.y)[1],new Object[]{1,r});else c.ks(new Object[]{1,r});}break;
+      case 1:c.kr(r);break;
+    }
+  }
+  static void sendError(c c,c.Dict cb,int msgType,String s) throws IOException{
+    switch(msgType){
+      case 0:{if(cb!=null)c.ks((String)((Object[])cb.y)[0],(String)((Object[])cb.y)[1],new Object[]{0,s});else c.ks(new Object[]{0,s});}break;
+      case 1:c.ke(s);break;
+    }
+  }   
   public static void main(String[] args){
     System.out.println(about);
     int port=9999;
@@ -202,107 +212,104 @@ public class Babel{
     final int _port=port;
     try{
       init();
-    }
-    catch(ClassNotFoundException ex){
-      ex.printStackTrace();
-      System.exit(1);
-    }
-    Runnable runner=new Runnable(){
-      public void run(){
+      java.net.SocketAddress socketAddress= new java.net.InetSocketAddress("127.0.0.1",_port);
+	    ServerSocket ss= new ServerSocket();
+	    ss.bind(socketAddress);
+      Logger.log("Listening on localhost:"+_port+" for connections...");
+      while(true){
         try{
-          java.net.SocketAddress socketAddress= new java.net.InetSocketAddress("127.0.0.1",_port);
-	  ServerSocket ss= new ServerSocket();
-	  ss.bind(socketAddress);
-          Logger.log("Listening on localhost:"+_port+" for connections...");
-          while(true){
-            try{
-              final c c=new c(ss,new c.IAuthenticate(){public boolean authenticate(String s){Logger.log("Authenticating "+s.split(":",2)[0]);return true;}});
-              Logger.log("Accepted connection from "+c.s.getRemoteSocketAddress());
-              Runnable runner=new Runnable(){
-                public void run(){
-                  try{
-                    while(true){
-                      Object obj=c.k();
-                      Logger.log("Request from "+c.s.getRemoteSocketAddress());
-                      if((obj instanceof Object[])&&(((Object[])obj).length>=1)&&(((Object[])obj)[0] instanceof char[])){
-                        String methodName=new String((char[])((Object[])obj)[0]);
-                        try{
-                          Class cls=Babel.class;
-                          int splitAt=methodName.lastIndexOf('.');
-                          if(splitAt != -1){
-                            String className= methodName.substring(0,splitAt);
-                            cls= Class.forName(className);
-                            methodName= methodName.substring(splitAt+1,methodName.length());
-                          }
-                          ArrayList v= new ArrayList();
-                          for( int i=1;i<((Object[])obj).length; i++)
-                            if(((Object[])obj)[i] != null)
-                              v.add(((Object[])obj)[i]);
-                          Object[] args=v.toArray();
-                          Class[] argClasses=new Class[args.length];
-                          for(int i=0;i<args.length;i++){
-                            Class c= args[i].getClass();
-                            if(c == Integer.class)
-                              c= int.class;
-                            argClasses[i]=c;
-                          }
-                          Method method=cls.getMethod(methodName,argClasses);
-                          try{
-                            Object result=method.invoke(null,args);
-                            c.kr(result);
-                            result=null;
-                            Logger.log("Response sent");
-                          }
-                          catch(IllegalAccessException e){
-                            e.printStackTrace();
-                            c.ke(e.getMessage());
-                          }
-                          catch(InvocationTargetException e){
-                            e.printStackTrace();
-                            c.ke(e.getCause().getMessage());
-                          }
-                        }
-                        catch(NoSuchMethodException e){
-                          e.printStackTrace();
-                          c.ke(e.getMessage());
-                        }
-                        finally{
-                          Runtime.getRuntime().gc();                    
-                        }
-                      }
-                      else
-                        c.ke("Unrecognized query format. Expecting (\"query|update\";\"jdbc url\";\"query text\")");
+          final c c=new c(ss,new c.IAuthenticate(){public boolean authenticate(String s){Logger.log("Authenticating "+s.split(":",2)[0]);return true;}});
+          Logger.log("Accepted connection from "+c.s.getRemoteSocketAddress());
+          Runnable runner=new Runnable(){
+            public void run(){
+              try{
+                while(true){
+                  c.Dict cb=null;
+                  c.Msg m=c.k();
+                  Logger.log("Request from "+c.s.getRemoteSocketAddress());
+                  if((m.data instanceof Object[])&&((Object[])m.data).length>=1){
+                    if(m.type==0&&((Object[])m.data)[0] instanceof c.Dict){
+                      Object[]o=new Object[Array.getLength(m.data)-1];
+                      cb=(c.Dict)((Object[])m.data)[0];
+                      System.arraycopy(m.data,1,o,0,o.length);
+                      m.data=o;
                     }
-                  }
-                  catch(Exception e){
-                    e.printStackTrace();
-                  }
-                  finally{
-                    if(c!=null){
+                    if((((Object[])m.data)[0] instanceof char[])){
+                      String methodName=new String((char[])((Object[])m.data)[0]);
                       try{
-                        c.close();
+                        Class cls=Babel.class;
+                        int splitAt=methodName.lastIndexOf('.');
+                        if(splitAt != -1){
+                          String className= methodName.substring(0,splitAt);
+                          cls= Class.forName(className);
+                          methodName= methodName.substring(splitAt+1,methodName.length());
+                        }
+                        ArrayList v= new ArrayList();
+                        for( int i=1;i<((Object[])m.data).length; i++)
+                          if(((Object[])m.data)[i] != null)
+                          v.add(((Object[])m.data)[i]);
+                        Object[] args=v.toArray();
+                        Class[] argClasses=new Class[args.length];
+                        for(int i=0;i<args.length;i++){
+                          Class c= args[i].getClass();
+                          if(c == Integer.class)
+                            c= int.class;
+                          argClasses[i]=c;
+                        }
+                        Method method=cls.getMethod(methodName,argClasses);
+                        try{
+                          Object result=method.invoke(null,args);
+                          sendResponse(c,cb,m.type,result);
+                          result=null;
+                          Logger.log("Response sent");
+                        }
+                        catch(IllegalAccessException e){
+                          e.printStackTrace();
+                          sendError(c,cb,m.type,e.getMessage());
+                        }
+                        catch(InvocationTargetException e){
+                          e.printStackTrace();
+                          sendError(c,cb,m.type,e.getCause().getMessage());
+                        }
                       }
-                      catch(IOException ex){
+                      catch(NoSuchMethodException e){
+                        e.printStackTrace();
+                        sendError(c,cb,m.type,e.getMessage());
+                      }
+                      finally{
+                        Runtime.getRuntime().gc();                    
                       }
                     }
-                    Runtime.getRuntime().gc();
+                    else
+                      sendError(c,cb,m.type,"Unrecognized query format. Expecting (\"query|update\";\"jdbc url\";\"query text\")");
                   }
                 }
-              };
-              Thread t=new Thread(runner);
-              t.start();
+              }
+              catch(Exception e){
+                e.printStackTrace();
+              }
+              finally{
+                if(c!=null){
+                  try{
+                    c.close();
+                  }
+                  catch(IOException ex){
+                  }
+               }
+               Runtime.getRuntime().gc();
+             }
             }
-            catch(Exception e){
-                Logger.log(e);
-            }
-          }
+          };
+          Thread t=new Thread(runner);
+          t.start();
         }
         catch(Exception e){
             Logger.log(e);
         }
       }
-    };
-    Thread t=new Thread(runner);
-    t.start();
+    }
+    catch(Exception e){
+        Logger.log(e);
+    }
   }
 }
