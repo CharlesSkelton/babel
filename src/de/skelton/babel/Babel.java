@@ -27,7 +27,7 @@ import java.util.Map;
 import kx.c;
 
 public class Babel{
-  private static final String about="Babel for kdb+ v1.32 2013.11.27\n";
+  private static final String about="Babel for kdb+ v1.32 2013.12.03\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
@@ -50,7 +50,13 @@ public class Babel{
     typeMap.put(new Integer(java.sql.Types.TINYINT),int.class);    
     typeMap.put(new Integer(java.sql.Types.VARCHAR),char[].class);    
   }
-  public static Object query(char[] _connectionDetails,char[] _query) throws ClassNotFoundException,SQLException{
+  public static Object query(char[] connectionDetails,char[] query) throws ClassNotFoundException,SQLException{
+    return queryX(false,connectionDetails, query);
+  }
+  public static Object string(char[] connectionDetails,char[] query) throws ClassNotFoundException,SQLException{
+    return queryX(true,connectionDetails, query);
+  }
+  public static Object queryX(boolean stringify,char[] _connectionDetails,char[] _query) throws ClassNotFoundException,SQLException{
     String connectionDetails=new String(_connectionDetails);
     String query=new String(_query);
     String[] columnNames=new String[0];
@@ -78,7 +84,7 @@ public class Babel{
               int[]dataTypes=new int[nCols];
               for(int col=0;col<nCols;col++){
                 columnNames[col]=rmd.getColumnName(col+1);
-                dataTypes[col]=rmd.getColumnType(col+1);
+                dataTypes[col]=stringify?java.sql.Types.VARCHAR:rmd.getColumnType(col+1);
                 if(dataTypes[col]==java.sql.Types.NUMERIC||dataTypes[col]==java.sql.Types.DECIMAL){
                   // NUMBER(precision,scale);(0,0)-unspecified;(38,0)-default
                   // oracle.jdbc.J2EE13Compliant=true eliminates getScale=-127
