@@ -27,7 +27,7 @@ import java.util.Map;
 import kx.c;
 
 public class Babel{
-  private static final String about="Babel for kdb+ v1.32 2013.12.03\n";
+  private static final String about="Babel for kdb+ v1.33 2013.12.20\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
@@ -290,6 +290,9 @@ public class Babel{
                       sendError(c,cb,m.type,"Unrecognized query format. Expecting (\"query|update\";\"jdbc url\";\"query text\")");
                   }
                 }
+              }
+              catch(java.io.EOFException e){
+                Logger.log("Connection closed by "+c.s.getRemoteSocketAddress());
               }
               catch(Exception e){
                 e.printStackTrace();
