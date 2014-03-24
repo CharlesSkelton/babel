@@ -27,7 +27,9 @@ import java.util.Map;
 import kx.c;
 
 public class Babel{
-  private static final String about="Babel for kdb+ v1.33 2013.12.20\n";
+  private static final int ORACLE_BINARY_FLOAT=100;
+  private static final int ORACLE_BINARY_DOUBLE=101;
+  private static final String about="Babel for kdb+ v1.34 2014.03.24\n";
   private static Map typeMap=new HashMap();
   private static void init() throws ClassNotFoundException{
 //    http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
@@ -49,6 +51,11 @@ public class Babel{
     typeMap.put(new Integer(java.sql.Types.TIMESTAMP),java.sql.Timestamp.class);
     typeMap.put(new Integer(java.sql.Types.TINYINT),int.class);    
     typeMap.put(new Integer(java.sql.Types.VARCHAR),char[].class);    
+    typeMap.put(new Integer(java.sql.Types.NCHAR),char[].class);
+   	typeMap.put(new Integer(java.sql.Types.NVARCHAR),char[].class);
+    typeMap.put(new Integer(java.sql.Types.LONGNVARCHAR),char[].class);
+    typeMap.put(new Integer(ORACLE_BINARY_FLOAT),float.class);
+    typeMap.put(new Integer(ORACLE_BINARY_DOUBLE),double.class);
   }
   public static Object query(char[] connectionDetails,char[] query) throws ClassNotFoundException,SQLException{
     return queryX(false,connectionDetails, query);
@@ -112,8 +119,10 @@ public class Babel{
                   switch(dataTypes[col]){
                     case(java.sql.Types.BIT):
                     case(java.sql.Types.BOOLEAN):{boolean b=results.getBoolean(col+1);if(results.wasNull())b=false;data[col].add(b);}break;
+                    case(ORACLE_BINARY_DOUBLE):
                     case(java.sql.Types.FLOAT):
                     case(java.sql.Types.DOUBLE):{double d=results.getDouble(col+1);if(results.wasNull())d=Double.NaN;data[col].add(d);}break;
+                    case(ORACLE_BINARY_FLOAT):
                     case(java.sql.Types.REAL):{float f=results.getFloat(col+1);if(results.wasNull())f=Float.NaN;data[col].add(f);}break;
                     case(java.sql.Types.TINYINT):
                     case(java.sql.Types.SMALLINT):{short h=results.getShort(col+1);if(results.wasNull())h=Short.MIN_VALUE;data[col].add(h);}break;
@@ -124,6 +133,9 @@ public class Babel{
                     case(java.sql.Types.NUMERIC):
                     case(java.sql.Types.CHAR):
                     case(java.sql.Types.VARCHAR):
+                    case(java.sql.Types.NCHAR):
+                    case(java.sql.Types.NVARCHAR):
+                    case(java.sql.Types.LONGNVARCHAR):
                     case(java.sql.Types.LONGVARCHAR):{String s=results.getString(col+1);if(results.wasNull())s="";data[col].add(s.toCharArray());}break;
                     case(java.sql.Types.DATE):{Date d=results.getDate(col+1);if(results.wasNull())d=(Date)c.NULL('d');data[col].add(d);}break;
                     case(java.sql.Types.TIME):{Time t=results.getTime(col+1);if(results.wasNull())t=(Time)c.NULL('t');data[col].add(t);}break;
