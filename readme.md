@@ -1,16 +1,12 @@
 Babel for kdb+
 =========
-
 Babel for kdb+ allows the **ultra-fast** database kdb+ from [Kx Systems] to query other databases via jdbc. It runs as a daemon, accepts connections from kdb+ processes, and queries other databases via the jdbc interface, transforming the result into a kdb+ compatible object.
 
-Additionally the application features
-  - export to Excel
-  - drag and drop
-  - immediate charting of grid data
+![alt tag](https://raw.githubusercontent.com/CharlesSkelton/babel/master/meta/Babel.png)
+
 
 Current Version
 ----
-
 1.34 2014.03.24
 
 Installation
